@@ -277,10 +277,11 @@ function StickyHeadInner(props, ref) {
   const [positionFixed, setPositionFixed] = React.useState('top');
   const [refScrollContainer, setRefScrollContainer] = React.useState(null);
   const [container, setContainerNode] = React.useState(propsContainer);
+  const [containerStyle, setContainerStyle] = React.useState({ left: 'auto' });
+  const lastScrollLeft = React.useRef(0);
 
   const { self } = React.useContext(ContextTable);
   const heightHeader = refScrollContainer ? refScrollContainer.offsetHeight : 0;
-  let lastScrollLeft = 0;
 
   const getPositionContainer = (container) => {
     if (!container || !container.getBoundingClientRect) {
@@ -291,25 +292,12 @@ function StickyHeadInner(props, ref) {
     return { top, bottom, left };
   };
 
-  const setLeftPositionContainerSticky = (positionContainerLeft, positionFixed) => {
-    if (!refScrollContainer) {
-      return false;
-    }
-
-    const containerStickyNode = refScrollContainer.parentNode;
-    let left = 'auto';
-
-    if (positionFixed === 'fixed') {
-      left = `${positionContainerLeft}px`;
-    }
-
-    containerStickyNode.style.left = left;
-  };
-
   const updatePositionContainer = (coordinate, position) => {
     setPositionFixed(position);
-    fireFn(onFixed, positionFixed);
-    setLeftPositionContainerSticky(coordinate.left, position);
+    setContainerStyle({
+      left: position === 'fixed' ? `${coordinate.left}px` : 'auto',
+    });
+    fireFn(onFixed, position);
   };
 
   const setPositionContainer = useEventCallback(() => {
@@ -319,19 +307,25 @@ function StickyHeadInner(props, ref) {
     const min = topContainer + scrollTop - top;
     const max = bottomContainer + scrollTop - top - heightHeader - bottom;
 
+    let newPosition = positionFixed;
+
     if (scrollTop >= min && scrollTop <= max && positionFixed !== 'fixed') {
-      updatePositionContainer({ left }, 'fixed');
-    }
-    if (scrollTop < min && positionFixed !== 'top') {
-      updatePositionContainer({ left }, 'top');
-    }
-    if (scrollTop > max && positionFixed !== 'bottom') {
-      updatePositionContainer({ left }, 'bottom');
+      newPosition = 'fixed';
+      updatePositionContainer({ left }, newPosition);
+    } else if (scrollTop < min && positionFixed !== 'top') {
+      newPosition = 'top';
+      updatePositionContainer({ left }, newPosition);
+    } else if (scrollTop > max && positionFixed !== 'bottom') {
+      newPosition = 'bottom';
+      updatePositionContainer({ left }, newPosition);
     }
 
-    if (lastScrollLeft !== scrollLeft) {
-      lastScrollLeft = scrollLeft;
-      setLeftPositionContainerSticky(left, positionFixed);
+    if (lastScrollLeft.current !== scrollLeft) {
+      lastScrollLeft.current = scrollLeft;
+      setContainerStyle((prevStyle) => ({
+        ...prevStyle,
+        left: newPosition === 'fixed' ? `${left}px` : 'auto',
+      }));
     }
   });
 
@@ -395,20 +389,6 @@ function StickyHeadInner(props, ref) {
     [refScrollContainer],
   );
 
-  const updateSizeAndPositionContainer = useEventCallback(() => {
-    setPositionContainer();
-
-    if (refScrollContainer && container) {
-      refScrollContainer.style.width = `${container.clientWidth}px`;
-    }
-
-    if (positionFixed === 'fixed') {
-      const { left } = getPositionContainer(container);
-      setLeftPositionContainerSticky(left, positionFixed);
-    }
-    setLeftPositionContainerSticky('auto', positionFixed);
-  });
-
   React.useEffect(
     function addListenerToContainer() {
       if (refScrollContainer && container) {
@@ -426,6 +406,14 @@ function StickyHeadInner(props, ref) {
     function addResizeObserverToContainer() {
       let resizeObserver = null;
 
+      const updateSizeAndPositionContainer = () => {
+        setPositionContainer();
+
+        if (refScrollContainer && container) {
+          refScrollContainer.style.width = `${container.clientWidth}px`;
+        }
+      };
+
       if (container) {
         resizeObserver = new ResizeObserver(updateSizeAndPositionContainer);
         resizeObserver.observe(container);
@@ -435,7 +423,7 @@ function StickyHeadInner(props, ref) {
         resizeObserver?.disconnect();
       };
     },
-    [container],
+    [container, refScrollContainer],
   );
 
   if (!container) return null;
@@ -448,6 +436,7 @@ function StickyHeadInner(props, ref) {
       top={top}
       bottom={bottom}
       ref={ref}
+      style={containerStyle}
       {...other}
     />
   );
