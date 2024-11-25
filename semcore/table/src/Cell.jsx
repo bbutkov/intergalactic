@@ -9,6 +9,10 @@ const SORTING_ICON = {
   desc: SortDesc,
   asc: SortAsc,
 };
+const ariaSort = {
+  desc: 'descending',
+  asc: 'ascending',
+};
 
 function RootCell(props, ref) {
   const SCell = Text;
@@ -60,9 +64,17 @@ function CellHeadInner(props, ref) {
   const SSortWrapper = 'div';
   const { styles, children, sorting, active } = props;
   const SSortIcon = SORTING_ICON[sorting];
+  const ariaSortValue = sorting ? ariaSort[sorting] : undefined;
 
   return sstyled(styles)(
-    <SCellHead ref={ref} tag='th' noWrap tabIndex={sorting && 0} {...props}>
+    <SCellHead
+      ref={ref}
+      tag='th'
+      noWrap
+      tabIndex={sorting && 0}
+      aria-sort={ariaSortValue}
+      {...props}
+    >
       <SCellHeadContent>
         {children}
         {sorting && (

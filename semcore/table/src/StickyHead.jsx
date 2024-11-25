@@ -156,7 +156,12 @@ function Head(props, ref) {
     if (tableDOM && canUseDOM()) {
       mutationObserver = new MutationObserver(updateWithTh);
       resizeObserver = new ResizeObserver(updateWithTh);
-      mutationObserver.observe(tableDOM, { subtree: true, childList: true });
+      mutationObserver.observe(tableDOM, {
+        subtree: true,
+        childList: true,
+        // attributes: true
+        attributeFilter: ['aria-sort'],
+      });
       resizeObserver.observe(tableDOM);
     }
 
