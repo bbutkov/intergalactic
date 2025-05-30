@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart } from 'intergalactic/d3-chart';
+import { Chart } from '@semcore/d3-chart';
 
 const Demo = () => {
   return (
@@ -17,7 +17,7 @@ const Demo = () => {
 const data = Array(5)
   .fill({})
   .map((d, i) => ({
-    category: `Category ${i}`,
+    category: `C.${i}`,
     bar: Math.random() * 10,
   }));
 

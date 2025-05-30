@@ -303,7 +303,7 @@ export const sideBarConfig: SidebarConfig = [
           {
             link: '/components/input-mask/input-mask',
             activeMatch: '/components/input-mask/',
-            text: 'InputMask',
+            text: 'InputMask [deprecated]',
           },
           {
             link: '/components/input-number/input-number',
@@ -615,11 +615,6 @@ export const sideBarConfig: SidebarConfig = [
             text: 'DataTable',
           },
           {
-            link: '/table-group/table-old/table-old',
-            activeMatch: '/table-group/table-old/',
-            text: 'Table (old)',
-          },
-          {
             link: '/table-group/table-primary/table-primary',
             activeMatch: '/table-group/table-primary/',
             text: 'Primary table',
@@ -636,6 +631,11 @@ export const sideBarConfig: SidebarConfig = [
           {
             link: '/table-group/table-states/table-states',
             text: 'Table states',
+          },
+          {
+            link: '/table-group/table-old/table-old',
+            activeMatch: '/table-group/table-old/',
+            text: 'Table [deprecated]',
           },
         ],
       },
@@ -773,49 +773,6 @@ export const sideBarConfig: SidebarConfig = [
           {
             link: '/patterns/web-performance/web-performance',
             text: 'Web-performance',
-          },
-        ],
-      },
-      {
-        text: 'Product emails',
-        collapsed: true,
-        items: [
-          {
-            link: '/product-emails/grid-email/grid-email',
-            activeMatch: '/product-emails/grid-email/',
-            text: 'Email templates & grid',
-          },
-          {
-            link: '/product-emails/core-email/core-email',
-            text: 'Core email colors',
-          },
-          {
-            link: '/product-emails/button-email/button-email',
-            text: 'Email button',
-          },
-          {
-            link: '/product-emails/badge-email/badge-email',
-            text: 'Email badge and tag',
-          },
-          {
-            link: '/product-emails/divider-email/divider-email',
-            text: 'Divider for emails',
-          },
-          {
-            link: '/product-emails/typography-email/typography-email',
-            text: 'Email typography',
-          },
-          {
-            link: '/product-emails/table-email/table-email',
-            text: 'Email table',
-          },
-          {
-            link: '/product-emails/notice-email/notice-email',
-            text: 'Email notice',
-          },
-          {
-            link: '/product-emails/summary-email/summary-email',
-            text: 'Email summary',
           },
         ],
       },

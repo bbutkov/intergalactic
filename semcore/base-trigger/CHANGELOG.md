@@ -2,6 +2,28 @@
 
 CHANGELOG.md standards are inspired by [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [16.2.0] - 2025-05-30
+
+### Changed
+
+- Version minor update due to children dependencies update (`@semcore/icon` [16.1.0 ~> 16.2.0], `@semcore/base-components` [16.0.0 ~> 16.0.1]).
+
+## [16.1.0] - 2025-05-23
+
+### Changed
+
+- Version minor update due to children dependencies update (`@semcore/icon` [16.0.0 ~> 16.1.0]).
+
+## [16.0.0] - 2025-05-19
+
+### Break
+
+- replaced `keyboardFocusEnhance` with `:focus-visible` CSS pseudo-class.
+
+### Added
+
+- `tabIndex` in `BaseTrigger` to fix focus [issue on webkit](https://bugs.webkit.org/show_bug.cgi?id=229895).
+
 ## [4.53.2] - 2025-05-13
 
 ### Changed

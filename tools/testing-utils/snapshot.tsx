@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { act } from './testing-library';
 
 import playwright from 'playwright';
-import fs from 'node:fs/promises';
+import { mockIllustrationsRequest } from './shared/mockIllustrationsRequest';
 
 let browser: playwright.Browser | null = null;
 
@@ -34,16 +34,7 @@ export const snapshot = async (
   browser = await playwright.chromium.launch();
   const page = await browser.newPage();
 
-  page.route('https://static.semrush.com/ui-kit/illustration/**/*.svg', async (route) => {
-    const illustrationName = route.request().url().split('/').pop()!;
-
-    const svg = await fs.readFile(
-      path.resolve(process.cwd(), 'semcore', 'illustration', 'svg', illustrationName),
-      'utf-8',
-    );
-
-    await route.fulfill({ body: svg, contentType: 'image/svg+xml' });
-  });
+  await mockIllustrationsRequest(page);
 
   options = Object.assign({}, DEFAULT_OPTIONS, options);
   const _tmp = document.createElement('div');
@@ -112,12 +103,17 @@ export const snapshot = async (
 
   if (options.actions?.active) {
     await page.click(options.actions.active);
+    await page.mouse.down();
   }
   if (options.actions?.hover) {
     await page.hover(options.actions.hover);
   }
   if (options.actions?.focus) {
-    await page.focus(options.actions.focus);
+    const element = page.locator(options.actions.focus);
+    const elementTabIndex = await element.getAttribute('tabindex');
+    if (elementTabIndex !== '-1') {
+      await element.focus();
+    }
   }
   const boundingBox = await mainElement?.boundingBox();
   const pageSize = await page.viewportSize();

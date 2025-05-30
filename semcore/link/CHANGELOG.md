@@ -2,6 +2,18 @@
 
 CHANGELOG.md standards are inspired by [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [16.0.1] - 2025-05-30
+
+### Changed
+
+- Version patch update due to children dependencies update (`@semcore/flex-box` [16.0.0 ~> 16.0.1], `@semcore/base-components` [16.0.0 ~> 16.0.1]).
+
+## [16.0.0] - 2025-05-19
+
+### Break
+
+- replaced `keyboardFocusEnhance` with `:focus-visible` CSS pseudo-class.
+
 ## [5.44.4] - 2025-05-13
 
 ### Changed
@@ -793,7 +805,7 @@ CHANGELOG.md standards are inspired by [keepachangelog.com](https://keepachangel
 
 - Added repository field to package.json file.
 
-## [3.4.1] - 2021-08-26
+## [3.4.1] - 2021-8-26
 
 ### Changed
 

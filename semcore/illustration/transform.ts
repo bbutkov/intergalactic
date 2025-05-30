@@ -108,7 +108,7 @@ await Promise.all(
 import React from 'react';
 import { createBaseComponent } from '@semcore/core';
 import { Box } from '@semcore/flex-box';
-import { useColorResolver } from '@semcore/utils/lib/use/useColorResolver';
+import { useColorResolver } from '@semcore/core/lib/utils/use/useColorResolver';
 
 const ${illustration} = ({${props.join(', ')}, ...props}, ref) => {
 ${prerenderLines.join('\n')}
@@ -190,7 +190,7 @@ async function patchExports(illustrations: string[]) {
   const exports: Record<string, any> = {
     '.': {
       require: './lib/cjs/index.js',
-      import: './lib/es6/index.js',
+      import: './lib/esm/index.mjs',
       types: './lib/types/index.d.ts',
     },
   };

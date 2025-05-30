@@ -9,6 +9,29 @@ export default mergeConfig(
       lib: {
         entry: './src/index.ts',
       },
+      rollupOptions: {
+        treeshake: false,
+        external: [
+          'react',
+          'react-dom',
+          'react/jsx-runtime',
+          /@babel\/runtime\/*/,
+          /@semcore\/*/,
+
+          '@formatjs/intl',
+          'classnames',
+          'hoist-non-react-statics',
+          '@phytonmk/nano-css',
+        ],
+        output: [
+          {
+            preserveModules: true,
+            assetFileNames: '[name][extname]',
+            entryFileNames: '[name].mjs',
+            format: 'esm',
+          },
+        ],
+      },
     },
   }),
 );

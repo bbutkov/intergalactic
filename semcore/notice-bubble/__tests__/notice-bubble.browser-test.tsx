@@ -29,9 +29,9 @@ test.describe('Basic notice with Interactive element', () => {
 
     // the X button focused on the notice with interactive element
     await openNoticeByKeyboard(page);
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await expect(locators.closeButton(page)).toBeFocused();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 250));
     await expect(locators.closeHint(page)).toBeVisible();
     await expect(page).toHaveScreenshot();
 
@@ -53,7 +53,7 @@ test.describe('Basic notice with Interactive element', () => {
 
     const buttonTrigger = locators.buttonTrigger(page, 'Show basic notice');
     await buttonTrigger.click();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await expect(page).toHaveScreenshot();
   });
 
@@ -61,10 +61,11 @@ test.describe('Basic notice with Interactive element', () => {
     await setupPage(page, 'stories/components/notice-bubble/docs/examples/basic_notice.tsx');
 
     await openNoticeByKeyboard(page);
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await page.keyboard.press('Shift+Tab');
     await expect(locators.buttonTrigger(page, 'Show basic notice')).toBeFocused();
     await page.keyboard.press('Enter');
+    await new Promise((resolve) => setTimeout(resolve, 200));
     await expect(locators.closeHint(page)).toBeVisible();
     await expect(page).toHaveScreenshot();
   });
@@ -109,7 +110,7 @@ test.describe('Success notice without Interactive element ', () => {
     //the focus is on the trigger always
     await openNoticeByKeyboard(page);
     await page.keyboard.press('Enter');
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await expect(page).toHaveScreenshot();
   });
 });
@@ -119,12 +120,12 @@ test.describe('Replace last notice', () => {
     await setupPage(page, 'stories/components/notice-bubble/docs/examples/replace_last_notice.tsx');
 
     await openNoticeByKeyboard(page);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const noticeBubble = page.locator('[data-ui-name="NoticeBubbleContainer"]');
     await expect(noticeBubble).toBeVisible();
     await expect(noticeBubble).toContainText('Link 1 was moved to');
     await page.keyboard.press('Enter');
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await expect(noticeBubble).toContainText('Link 2 was moved to');
   });
 
@@ -133,12 +134,12 @@ test.describe('Replace last notice', () => {
 
     const buttonTrigger = locators.buttonTrigger(page, 'Show basic notice');
     await buttonTrigger.click();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const noticeBubble = page.locator('[data-ui-name="NoticeBubbleContainer"]');
     await expect(noticeBubble).toBeVisible();
     await expect(noticeBubble).toContainText('Link 1 was moved to');
     await buttonTrigger.click();
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     await expect(noticeBubble).toContainText('Link 2 was moved to');
   });
 });
@@ -151,13 +152,13 @@ test.describe('Notice with illustration', () => {
     );
 
     await openNoticeByKeyboard(page);
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 250));
     const mailSentIcon = page.locator('svg[data-ui-name="MailSent"]');
 
     // Validate the dimensions of the SVG
     await expect(mailSentIcon).toHaveAttribute('width', '80');
     await expect(mailSentIcon).toHaveAttribute('height', '80');
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 250));
     await expect(page).toHaveScreenshot();
   });
 });

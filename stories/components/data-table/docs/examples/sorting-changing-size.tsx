@@ -1,5 +1,5 @@
 import React from 'react';
-import DataTable, { DataTableSort } from '@semcore/data-table';
+import { DataTable, DataTableSort } from '@semcore/data-table';
 
 type SortableColumn = Exclude<keyof typeof data[0], 'keyword'>;
 
@@ -24,36 +24,52 @@ const Demo = () => {
   );
 
   return (
-    <DataTable
+    <DataTable<typeof data>
       data={sortedData}
       sort={sort}
       onSortChange={setSort}
-      aria-label={'Sorting with change sortable column size'}
-    >
-      <DataTable.Head>
-        <DataTable.Column name='keyword' children='Keyword' justifyContent='left' sortable />
-        <DataTable.Column name='kd' children='KD,%' justifyContent='right' wMax={68} sortable />
-        <DataTable.Column name='cpc' children='CPC' wMax={60} sortable changeSortSize />
-        <DataTable.Column name='vol' children='Vol.' wMax={120} justifyContent='left' sortable />
-      </DataTable.Head>
-      <DataTable.Body>
-        <DataTable.Cell data={data} name='kd'>
-          {(_, row) => ({
-            children: row.kd === -1 ? 'n/a' : numberFormat.format(row.kd),
-          })}
-        </DataTable.Cell>
-        <DataTable.Cell data={data} name='cpc'>
-          {(_, row) => ({
-            children: row.cpc === -1 ? 'n/a' : currencyFormat.format(row.cpc),
-          })}
-        </DataTable.Cell>
-        <DataTable.Cell data={data} name='vol'>
-          {(_, row) => ({
-            children: row.vol === -1 ? 'n/a' : numberFormat.format(row.vol),
-          })}
-        </DataTable.Cell>
-      </DataTable.Body>
-    </DataTable>
+      aria-label={'Expanding sortable column'}
+      columns={[
+        { name: 'keyword', children: 'Keyword', justifyContent: 'left', sortable: true },
+        {
+          name: 'kd',
+          children: 'KD %',
+          justifyContent: 'right',
+          gtcWidth: 'minmax(0, 68px)',
+          style: { whiteSpace: 'nowrap' },
+          borders: 'both',
+          sortable: true,
+        },
+        {
+          name: 'cpc',
+          children: 'CPC',
+          gtcWidth: 'minmax(0, 60px)',
+          borders: 'right',
+          sortable: true,
+          changeSortSize: true,
+        },
+        {
+          name: 'vol',
+          children: 'Vol.',
+          gtcWidth: 'minmax(0, 120px)',
+          justifyContent: 'left',
+          sortable: true,
+        },
+      ]}
+      renderCell={(props) => {
+        if (props.columnName === 'keyword') {
+          return props.defaultRender();
+        }
+
+        const rawValue = props.row[props.columnName as SortableColumn];
+
+        return typeof rawValue === 'number' && rawValue !== -1
+          ? props.columnName === 'cpc'
+            ? currencyFormat.format(rawValue)
+            : numberFormat.format(rawValue)
+          : 'n/a';
+      }}
+    />
   );
 };
 

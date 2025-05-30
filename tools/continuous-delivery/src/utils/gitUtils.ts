@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import { log, prerelaseSuffix } from '../utils';
 import { VersionPatch } from '../makeVersionPatches';
 import { NpmUtils } from './npmUtils';
+import { allowedScopes } from './allowedScopes';
 
 const git = Git();
 
