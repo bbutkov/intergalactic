@@ -8,6 +8,9 @@ import { Text } from '@semcore/ui/typography';
 import { scaleLinear } from 'd3-scale';
 import React from 'react';
 
+import type { MeterHandles } from './performance-meter';
+import { PerformanceMeter, onProfilerRender } from './performance-meter';
+
 export type PerformanceStressProps = {
   rows: number;
   columns: number;
@@ -21,6 +24,8 @@ export type PerformanceStressProps = {
   wideSideIndents: boolean;
   loading: boolean;
   virtualScroll: boolean;
+  /** Shows the performance meter panel above the table. */
+  perfMeter: boolean;
 };
 
 const COLUMN_WIDTH = '160px';
@@ -399,6 +404,19 @@ const Demo = (props: PerformanceStressProps) => {
   const [expandedRows] = React.useState(() => new Set<string>());
   const [sort, setSort] = React.useState<DataTableSort<keyof PerformanceRow>>(['keyword', 'asc']);
   const [metricMode, setMetricMode] = React.useState<MetricMode>('traffic');
+  const [tableKey, setTableKey] = React.useState(0);
+  const tableRootRef = React.useRef<HTMLDivElement>(null);
+  const meterHandles = React.useMemo<MeterHandles>(
+    () => ({
+      remount: () => setTableKey((key) => key + 1),
+      cycleMetricMode: () =>
+        setMetricMode((current) => {
+          const index = METRIC_MODES.findIndex((mode) => mode.value === current);
+          return METRIC_MODES[(index + 1) % METRIC_MODES.length].value;
+        }),
+    }),
+    [],
+  );
 
   const sourceData = React.useMemo(
     () => createData(props.rows, props.columns, props.accordion),
@@ -480,6 +498,7 @@ const Demo = (props: PerformanceStressProps) => {
 
   const table = (
     <DataTable
+      key={tableKey}
       data={data}
       columns={columns}
       aria-label='Data table performance stress'
@@ -504,6 +523,9 @@ const Demo = (props: PerformanceStressProps) => {
   return (
     <SelectionContext.Provider value={selection}>
       <VisibleWidthContext.Provider value={visibleWidth}>
+        {props.perfMeter && (
+          <PerformanceMeter rootRef={tableRootRef} handles={meterHandles} args={props} />
+        )}
         <Box ref={wrapperRef} wMax={TABLE_WIDTH}>
           <Flex alignItems='center' gap={2} mb={3}>
             <Select
@@ -525,7 +547,11 @@ const Demo = (props: PerformanceStressProps) => {
               Sticky page header ({props.stickyTop}px)
             </Box>
           )}
-          {table}
+          <div ref={tableRootRef}>
+            <React.Profiler id='data-table' onRender={onProfilerRender}>
+              {table}
+            </React.Profiler>
+          </div>
         </Box>
       </VisibleWidthContext.Provider>
     </SelectionContext.Provider>
@@ -545,6 +571,7 @@ export const performanceStressDefaultProps: PerformanceStressProps = {
   wideSideIndents: true,
   loading: false,
   virtualScroll: false,
+  perfMeter: true,
 };
 
 Demo.defaultProps = performanceStressDefaultProps;

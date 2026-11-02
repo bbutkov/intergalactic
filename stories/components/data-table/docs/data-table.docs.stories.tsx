@@ -178,6 +178,9 @@ export const PerformanceStress: StoryObj<PerformanceStressProps> = {
     virtualScroll: {
       control: 'boolean',
     },
+    perfMeter: {
+      control: 'boolean',
+    },
   },
   args: performanceStressDefaultProps,
 };
