@@ -234,6 +234,97 @@ const style = (/*__reshadow_css_start__*/_sstyled.insert(/*__inner_css_start__*/
     });
   });
 
+  describe('Deduplication and formats', (test) => {
+    const makeSource = (css: string) => `import React from 'react';
+/*!__reshadow-styles__:"./style.shadow.css"*/
+const style = (/*__reshadow_css_start__*/_sstyled.insert(/*__inner_css_start__*/"${css}",/*__inner_css_end__*/"hash"),
+/*__reshadow_css_end__*/
+{});
+`;
+    const getImportPath = (code: string) => code.match(/import '([^']+\.css)';/)?.[1];
+
+    test('Verify same CSS from different modules resolves to a single virtual file', () => {
+      const plugin = processCssVitePlugin({ virtualFilesPrefix: 'test' }) as any;
+      const sourceCode = makeSource('.head { position: sticky; }');
+
+      const headResult = callTransform(plugin, sourceCode, '/node_modules/@semcore/data-table/lib/esm/Head.mjs');
+      const columnResult = callTransform(plugin, sourceCode, '/node_modules/@semcore/data-table/lib/esm/Column.mjs');
+
+      const headPath = getImportPath(headResult.code);
+      const columnPath = getImportPath(columnResult.code);
+
+      expect(headPath).toBeDefined();
+      expect(headPath).toBe(columnPath);
+      expect(plugin.load(headPath)).toBe('.head { position: sticky; }');
+    });
+
+    test('Verify escape sequences in double-quoted CSS are decoded', () => {
+      const plugin = processCssVitePlugin({}) as any;
+      const sourceCode = makeSource('.a:after { content: \\"x\\"; }\\n.b { color: red; }');
+
+      const result = callTransform(plugin, sourceCode, '/node_modules/@semcore/button/lib/es6/Button.js');
+
+      expect(plugin.load(getImportPath(result.code))).toBe('.a:after { content: "x"; }\n.b { color: red; }');
+    });
+
+    test('Verify new sstyled.insert output format and marker without "!"', () => {
+      const plugin = processCssVitePlugin({}) as any;
+      const sourceCode = `import React from 'react';
+/*__reshadow-styles__:"./style.shadow.css"*/
+const style = /*__reshadow_css_start__*/(_sstyled.insert(/*__inner_css_start__*/".new { color: red; }"/*__inner_css_end__*/, "hash")) /*__reshadow_css_end__*/;
+`;
+
+      const result = callTransform(plugin, sourceCode, '/node_modules/@semcore/button/lib/es6/Button.js');
+
+      expect(result.code).toContain('const style = undefined;');
+      expect(result.code).not.toContain('__reshadow');
+      expect(plugin.load(getImportPath(result.code))).toBe('.new { color: red; }');
+    });
+  });
+
+  describe('Output syntax', (test) => {
+    test('Verify parentheses stay balanced for esm build of @semcore/flags', () => {
+      const plugin = processCssVitePlugin({}) as any;
+      const sourceCode = `import { sstyled } from "@semcore/core";
+/*!__reshadow-styles__:"./style/flags.shadow.css"*/
+const styles = (
+  /*__reshadow_css_start__*/
+  (sstyled.insert(
+    /*__inner_css_start__*/
+    '.___SFlags_9jor3_gg_{position:relative}',
+    /*__inner_css_end__*/
+    "9jor3_gg_"
+  ), /*__reshadow_css_end__*/
+  {
+    "__SFlags": "___SFlags_9jor3_gg_"
+  })
+);
+export default styles;
+`;
+
+      const result = callTransform(plugin, sourceCode, '/node_modules/@semcore/flags/lib/esm/Flags.mjs');
+      const body = result.code.replace(/^import .*$/gm, '').replace(/^export .*$/gm, '');
+
+      expect(() => new Function(`${body}; return styles;`)).not.toThrow();
+      expect(new Function(`${body}; return styles;`)()).toEqual({ __SFlags: '___SFlags_9jor3_gg_' });
+    });
+
+    test('Verify parentheses stay balanced for babel build (no inner parenthesis)', () => {
+      const plugin = processCssVitePlugin({}) as any;
+      const sourceCode = `import React from 'react';
+/*!__reshadow-styles__:"./style/button.shadow.css"*/
+const style = (/*__reshadow_css_start__*/_sstyled.insert(/*__inner_css_start__*/".button { color: red; }",/*__inner_css_end__*/"hash"),
+/*__reshadow_css_end__*/
+{ "__SButton": "___SButton" });
+`;
+
+      const result = callTransform(plugin, sourceCode, '/node_modules/@semcore/button/lib/es6/Button.js');
+      const body = result.code.replace(/^import .*$/gm, '');
+
+      expect(new Function(`${body}; return style;`)()).toEqual({ __SButton: '___SButton' });
+    });
+  });
+
   describe('Edge cases', (test) => {
     test('Verify handling of @semcore/flags package specifically', () => {
       const plugin = processCssVitePlugin({});

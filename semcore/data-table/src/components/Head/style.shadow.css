@@ -196,6 +196,13 @@ SSortWrapper {
   transition: all calc(var(--intergalactic-duration-extra-fast, 100) * 1ms) ease-in-out;
 }
 
+/* the sorted changeSortSize column keeps the icon space in its content, so content-sized tracks fit it
+   (other tracks get the min width from the table, see DataTable/trackMinWidth.ts) */
+SColumn[changeSortSize][isSorted] SSortWrapper {
+  flex-shrink: 0;
+  min-width: calc(var(--intergalactic-spacing-1x, 4px) + 16px);
+}
+
 SSortWrapper:before {
   display: none;
   content: '';

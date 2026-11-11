@@ -25,6 +25,7 @@ import type {
   DataRowItem, ColumnsConfig,
 } from './DataTable.types';
 import { ScrollBars } from './ScrollBars';
+import { withTrackMinWidth } from './trackMinWidth';
 import type { ISelectedRows } from '../../store/SelectableRows';
 import { SelectableRows } from '../../store/SelectableRows';
 import scrollStyles from '../../style/scroll-shadows.shadow.css';
@@ -57,6 +58,8 @@ type State<
   selectAllMessage: string;
   expandedRows: Set<UniqKeyType>;
   scrollOffset: [number, number];
+  /** Minimum width of the sorted `changeSortSize` column: its caption with the sort icon. */
+  sortColumnMinWidth: { name: string; width: number } | null;
 };
 
 type DefaultProps = {
@@ -180,6 +183,7 @@ class DataTableRoot<
     selectAllMessage: '',
     expandedRows: new Set<UniqKeyType>(),
     scrollOffset: [0, 0],
+    sortColumnMinWidth: null,
   };
 
   componentDidMount() {
@@ -374,6 +378,42 @@ class DataTableRoot<
     return scrollDirection;
   }
 
+  handleSortMinWidthChange = (name: string, width: number | null) => {
+    this.setState(({ sortColumnMinWidth }) => {
+      if (width === null) {
+        // another column may have taken the sorting already
+        return sortColumnMinWidth?.name === name ? { sortColumnMinWidth: null } : null;
+      }
+
+      return sortColumnMinWidth?.name === name && sortColumnMinWidth.width === width
+        ? null
+        : { sortColumnMinWidth: { name, width } };
+    });
+  };
+
+  /**
+   * The grid template of the columns, with the floor of the sorted `changeSortSize` column. Computed on render,
+   * so it follows the columns changes; a floor of a column that is not in the table any more is ignored.
+   */
+  get gridTemplateColumns(): string[] {
+    const { gridTemplateColumns, gridTemplateAreas } = this.gridSettings;
+    const { sortColumnMinWidth } = this.state;
+
+    if (!sortColumnMinWidth) {
+      return gridTemplateColumns;
+    }
+
+    const index = gridTemplateAreas.indexOf(sortColumnMinWidth.name);
+
+    if (index === -1) {
+      return gridTemplateColumns;
+    }
+
+    return gridTemplateColumns.map((track, trackIndex) =>
+      trackIndex === index ? withTrackMinWidth(track, sortColumnMinWidth.width) : track,
+    );
+  }
+
   get isDataEmpty() {
     return this.asProps.data.length === 0;
   }
@@ -391,7 +431,8 @@ class DataTableRoot<
       sideIndents,
       variant,
     } = this.asProps;
-    const { gridTemplateColumns, gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateColumns } = this;
 
     const sideIndentsValue = variant === 'card' ? 'wide' : sideIndents;
 
@@ -423,6 +464,7 @@ class DataTableRoot<
       withAnimation: this.withAnimation && this.scrollDirection === 'horizontal' && !this.isDataEmpty,
       headerNodesMap: this.headerNodesMap,
       scrollOffset: this.state.scrollOffset,
+      onSortMinWidthChange: this.handleSortMinWidthChange,
     };
   }
 
@@ -449,7 +491,8 @@ class DataTableRoot<
       totalRows,
       accordionAnimationRows,
     } = this.asProps;
-    const { gridTemplateColumns, gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateColumns } = this;
 
     return {
       accordionDuration,
@@ -1016,7 +1059,8 @@ class DataTableRoot<
     } = this.asProps;
 
     const [offsetLeftSum, offsetRightSum] = this.state.scrollOffset;
-    const { gridTemplateColumns, gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateAreas } = this.gridSettings;
+    const { gridTemplateColumns } = this;
 
     const headerHeight = headerProps?.h || this.getHeaderHeight();
     const topOffset =

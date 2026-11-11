@@ -102,4 +102,6 @@ export type ColumnPropsInner<
   shadowVertical?: BodyPropsInner<Data, UniqKeyType>['shadowVertical'];
   scrollDirection?: 'horizontal' | 'vertical' | 'both';
   headerNodesMap: Map<string, React.RefObject<HTMLDivElement>>;
+  /** Reports the minimum width of the sorted `changeSortSize` column, `null` drops it. */
+  onSortMinWidthChange?: (name: string, minWidth: number | null) => void;
 };

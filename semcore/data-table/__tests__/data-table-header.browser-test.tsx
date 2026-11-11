@@ -653,6 +653,80 @@ test.describe(`${TAG.FUNCTIONAL}`, () => {
         }
       });
 
+      test.describe('Sorting with changing size and dynamic columns', () => {
+        const example = 'stories/components/data-table/tests/examples/header-tests/sorting/change-sort-size-columns.tsx';
+        // gtcWidth of the metric columns in the example, narrower than caption + sort icon
+        const fixedWidth = 50;
+
+        const header = (page: any, name: string) => page.locator(`[role="columnheader"][name="${name}"]`);
+        const columnWidth = async (page: any, name: string) => (await header(page, name).boundingBox())?.width ?? 0;
+
+        const expectHeaderAlignedWithCells = async (page: any, names: string[]) => {
+          for (const name of names) {
+            const headerBox = await header(page, name).boundingBox();
+            const cellBox = await page.locator(`[role="gridcell"][name="${name}"]`).first().boundingBox();
+
+            expect(cellBox?.x).toBeCloseTo(headerBox?.x ?? -1, 0);
+            expect(cellBox?.width).toBeCloseTo(headerBox?.width ?? -1, 0);
+          }
+        };
+
+        test('Verify sorted column stays expanded when columns change', {
+          tag: [TAG.PRIORITY_HIGH, TAG.MOUSE, '@data-table'],
+        }, async ({ page }) => {
+          await loadPage(page, example, 'en');
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBeGreaterThan(fixedWidth);
+
+          await page.getByRole('button', { name: 'Toggle CPC' }).click();
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBeGreaterThan(fixedWidth);
+          expect(await columnWidth(page, 'kd')).toBe(fixedWidth);
+          await expectHeaderAlignedWithCells(page, ['keyword', 'kd', 'vol']);
+        });
+
+        test('Verify sorted column keeps its size when data changes', {
+          tag: [TAG.PRIORITY_HIGH, TAG.MOUSE, '@data-table'],
+        }, async ({ page }) => {
+          await loadPage(page, example, 'en');
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBeGreaterThan(fixedWidth);
+          const expandedWidth = await columnWidth(page, 'vol');
+
+          await page.getByRole('button', { name: 'Change data' }).click();
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBe(expandedWidth);
+          await expectHeaderAlignedWithCells(page, ['keyword', 'kd', 'cpc', 'vol']);
+        });
+
+        test('Verify previous column restores its size when sorting by a column without changeSortSize', {
+          tag: [TAG.PRIORITY_HIGH, TAG.MOUSE, '@data-table'],
+        }, async ({ page }) => {
+          await loadPage(page, example, 'en');
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBeGreaterThan(fixedWidth);
+
+          await header(page, 'keyword').click();
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBe(fixedWidth);
+          await expectHeaderAlignedWithCells(page, ['keyword', 'kd', 'cpc', 'vol']);
+        });
+
+        test('Verify column on the left of the previously sorted one expands', {
+          tag: [TAG.PRIORITY_HIGH, TAG.MOUSE, '@data-table'],
+        }, async ({ page }) => {
+          await loadPage(page, example, 'en');
+
+          await expect.poll(() => columnWidth(page, 'vol')).toBeGreaterThan(fixedWidth);
+
+          await header(page, 'cpc').click();
+
+          await expect.poll(() => columnWidth(page, 'cpc')).toBeGreaterThan(fixedWidth);
+          await expect.poll(() => columnWidth(page, 'vol')).toBe(fixedWidth);
+          await expectHeaderAlignedWithCells(page, ['keyword', 'kd', 'cpc', 'vol']);
+        });
+      });
+
       test('Verify sorting with undefined as default value by mouse interactions', {
         tag: [TAG.PRIORITY_HIGH,
           TAG.MOUSE,

@@ -15,6 +15,8 @@ CHANGELOG.md standards are inspired by [keepachangelog.com](https://keepachangel
 - Accordion toggle click could be handled more than once.
 - With `accordionDuration={0}`, a click right after collapsing an accordion row was ignored.
 - Content with `position: sticky` inside a single-cell accordion row didn't stick to the table scroll.
+- `changeSortSize`: the grid template got out of sync with the columns when they changed while sorted.
+- `changeSortSize`: the previously sorted column kept its expanded width, or the new one wasn't expanded, when the template had a track with a space in it (e.g. `minmax(200px, 1fr)`).
 
 ## [17.3.0] - 2026-09-10
 

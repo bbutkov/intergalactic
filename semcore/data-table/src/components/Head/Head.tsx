@@ -149,6 +149,7 @@ class HeadRoot<
       onCellClick,
       scrollDirection,
       headerNodesMap,
+      onSortMinWidthChange,
     } = this.asProps;
     const column = columns[index];
 
@@ -176,6 +177,7 @@ class HeadRoot<
       'onClick': onCellClick,
       scrollDirection,
       headerNodesMap,
+      onSortMinWidthChange,
       'top': top && scrollDirection !== 'horizontal' ? `${top}px` : undefined,
     };
   }

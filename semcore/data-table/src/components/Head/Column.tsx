@@ -83,74 +83,60 @@ export class Column<
     }
 
     if (canUseDOM() && changeSortSize && sort?.[0] === name) {
-      this.changeTemplateColumnBySort();
+      this.updateSortMinWidth();
     }
   }
 
   componentDidUpdate(prevProps: DataTableColumnProps & ColumnPropsInner<Data, UniqKey, UniqKeyType>): void {
+    const { changeSortSize, sort, gridTemplateAreas } = this.asProps;
+
+    if (!canUseDOM() || (!changeSortSize && !prevProps.changeSortSize)) {
+      return;
+    }
+
+    // the table recalculates the template areas on the columns config changes, the caption may have changed then
     if (
-      this.asProps.changeSortSize &&
-      canUseDOM() &&
-      prevProps.sort?.[0] !== this.asProps.sort?.[0]
+      prevProps.changeSortSize !== changeSortSize ||
+      prevProps.sort?.[0] !== sort?.[0] ||
+      prevProps.gridTemplateAreas !== gridTemplateAreas
     ) {
-      this.changeTemplateColumnBySort();
+      this.updateSortMinWidth();
     }
   }
 
   componentWillUnmount(): void {
+    const { name, changeSortSize, onSortMinWidthChange } = this.asProps;
     const columnElement = this.columnRef.current;
     const columnName = columnElement?.getAttribute('name');
 
     if (columnName) {
       this.asProps.headerNodesMap.delete(columnName);
     }
-  }
 
-  changeTemplateColumnBySort() {
-    const { tableRef, gridTemplateColumns, columnIndex, sort, name } = this.asProps;
-
-    if (sort?.[0] === name) {
-      const newWidth = this.calculateActiveColumnMinWidth();
-
-      setTimeout(() => {
-        if (tableRef.current && newWidth !== null) {
-          tableRef.current.style.setProperty(
-            'grid-template-columns',
-            gridTemplateColumns
-              .map((gtcWidth, index) => {
-                if (index === columnIndex) {
-                  return `${newWidth}px`;
-                }
-                return gtcWidth;
-              })
-              .join(' '),
-          );
-        }
-      });
-    } else if (sort?.[0] !== name) {
-      setTimeout(() => {
-        if (tableRef.current) {
-          const currentGridTemplateColumns = tableRef.current.style.getPropertyValue('grid-template-columns');
-
-          if (currentGridTemplateColumns) {
-            tableRef.current.style.setProperty(
-              'grid-template-columns',
-              currentGridTemplateColumns.split(' ')
-                .map((gtcWidth, index) => {
-                  if (index === columnIndex) {
-                    return gridTemplateColumns[index];
-                  }
-                  return gtcWidth;
-                })
-                .join(' '),
-            );
-          }
-        }
-      });
+    if (changeSortSize) {
+      onSortMinWidthChange?.(name, null);
     }
   }
 
-  calculateActiveColumnMinWidth = (): number | null => {
+  /**
+   * Reports the minimum width of the sorted `changeSortSize` column (its caption with the sort icon) to the table,
+   * which floors the column track with it. The table owns the grid template, so the floor follows the columns
+   * changes and is dropped together with the column.
+   */
+  updateSortMinWidth() {
+    const { changeSortSize, sort, name, onSortMinWidthChange } = this.asProps;
+
+    if (changeSortSize && sort?.[0] === name) {
+      const captionWidth = this.measureCaptionWidth();
+
+      onSortMinWidthChange?.(name, captionWidth === null ? null : captionWidth + SORT_ICON_WIDTH);
+    } else {
+      onSortMinWidthChange?.(name, null);
+    }
+  }
+
+  /** Width of the column content without the sort icon, with the column paddings and borders. */
+  measureCaptionWidth = (): number | null => {
     const node = this.columnRef.current;
 
     if (node) {
@@ -170,11 +156,15 @@ export class Column<
         'flex',
         'margin',
         'padding',
+        'border-left',
+        'border-right',
         'background',
+        'font-family',
         'font-style',
         'font-width',
         'font-size',
         'font-weight',
+        'letter-spacing',
       ];
 
       styles.forEach((key) => {
@@ -193,17 +183,7 @@ export class Column<
 
       document.body.removeChild(clonedColumn);
 
-      const defaultNodeWidth = this.columnRef.current?.clientWidth ?? 0;
-
-      if (computedWidth >= defaultNodeWidth) {
-        return defaultNodeWidth + SORT_ICON_WIDTH;
-      } else {
-        const freeSpace = defaultNodeWidth - computedWidth;
-
-        if (freeSpace < SORT_ICON_WIDTH) {
-          return computedWidth + SORT_ICON_WIDTH;
-        }
-      }
+      return computedWidth;
     }
 
     return null;

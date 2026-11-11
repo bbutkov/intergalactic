@@ -75,4 +75,5 @@ export type HeadPropsInner<
   headerNodesMap: Map<string, React.RefObject<HTMLDivElement>>;
   /** Summed widths of left and right fixed columns */
   scrollOffset: [left: number, right: number];
+  onSortMinWidthChange?: ColumnPropsInner<Data, UniqKey, UniqKeyType>['onSortMinWidthChange'];
 };
