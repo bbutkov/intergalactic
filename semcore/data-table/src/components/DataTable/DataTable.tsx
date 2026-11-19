@@ -135,6 +135,8 @@ class DataTableRoot<
 
   private columnsSplitter = '/';
   private tmpData: Data;
+  /** Column names the calculated rows were built for: rows fill the missing column keys, so they depend on them. */
+  private tmpRowsColumnNames = '';
   private calculatedRows: Array<DTRow<UniqKeyType> | DTRow<UniqKeyType>[]>;
   private flatRows: DTRow<UniqKeyType>[];
   private gridSettings: {
@@ -249,9 +251,13 @@ class DataTableRoot<
       this.treeColumns = cols[1];
     }
 
-    if ('data' in changedProps) {
-      this.calculatedRows = this.getRows();
-      this.flatRows = this.calculatedRows.flat();
+    // getRows keeps the cached rows when neither the data nor the column names changed
+    if ('columns' in changedProps || 'data' in changedProps) {
+      const rows = this.getRows();
+      if (rows !== this.calculatedRows) {
+        this.calculatedRows = rows;
+        this.flatRows = rows.flat();
+      }
     }
   }
 
@@ -1420,7 +1426,7 @@ class DataTableRoot<
   private getFlatRows(): DTRow<UniqKeyType>[] {
     const { data } = this.props;
 
-    if (this.tmpData === data && this.flatRows) {
+    if (this.tmpData === data && this.tmpRowsColumnNames === this.getColumnNamesKey() && this.flatRows) {
       return this.flatRows;
     }
 
@@ -1429,16 +1435,23 @@ class DataTableRoot<
     return this.flatRows;
   }
 
+  private getColumnNamesKey(): string {
+    return this.columns.map((column) => column.name).join(this.columnsSplitter);
+  }
+
   private getRows(): Array<DTRow<UniqKeyType>[] | DTRow<UniqKeyType>> {
     const columns = this.columns;
     // @ts-ignore
     const { data, uid, uniqueRowKey, selectedRows } = this.props;
 
-    if (this.tmpData === data) {
+    const columnNamesKey = this.getColumnNamesKey();
+
+    if (this.tmpData === data && this.tmpRowsColumnNames === columnNamesKey) {
       return this.calculatedRows;
     }
 
     this.tmpData = data;
+    this.tmpRowsColumnNames = columnNamesKey;
 
     const availableRowKeys: UniqKeyType[] = [];
 

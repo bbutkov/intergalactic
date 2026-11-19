@@ -218,6 +218,27 @@ describe('DataTable', (test) => {
     expect(cpc.style.left).toBe('');
   });
 
+  test('renders cells of a renamed column when the data reference is kept', ({ expect }) => {
+    // the data row has no key of the column: the cell is built by renderCell from the raw data
+    const data = [{ keyword: 'ebay', metrics: { traffic: '10', volume: '20' } }];
+    const renderCell = ({ columnName, rawData, defaultRender }: CellRenderProps<any, unknown>) =>
+      columnName === 'keyword' ? defaultRender() : rawData.metrics[String(columnName).replace('prediction_', '')];
+    const getColumns = (metric: string) => [
+      { name: 'keyword', children: 'Keyword' },
+      { name: `prediction_${metric}`, children: metric },
+    ];
+
+    const { getAllByRole, rerender } = render(
+      <DataTable aria-label='table' data={data} columns={getColumns('traffic')} renderCell={renderCell} />,
+    );
+    expect(getAllByRole('gridcell')[1].textContent).toBe('10');
+
+    rerender(<DataTable aria-label='table' data={data} columns={getColumns('volume')} renderCell={renderCell} />);
+
+    expect(getAllByRole('gridcell')).toHaveLength(2);
+    expect(getAllByRole('gridcell')[1].textContent).toBe('20');
+  });
+
   describe('types', (test) => {
     const any: any = null;
     test('props nesting', () => {
